@@ -1,18 +1,23 @@
 const express = require('express')
-const mysql = require('mysql2/promise')
+const mysql = require('mysql2')
 
 const app = express()
 
 // Tạo kết nối mysql
-const db = mysql.createPool({
+const db = mysql.createConnection({
     host: 'localhost',
     port: 3306,
     user: 'root',
     password: '123',
-    database: 'shopee_suabai',
-    connectionLimit: 100, // số lượng connect đồng thời tối đa
-    queueLimit: 0, // không giới hạn hàng chờ
-    waitForConnections: true // cho phép chờ
+    database: 'shopee_suabai'
+})
+
+db.connect((err) => {
+    if (err) {
+        console.log(err)
+    } else {
+        console.log('mysql connected')
+    }
 })
 
 app.use(express.json())  // phân tích dữ liệu dạng json
@@ -24,36 +29,18 @@ app.get('/api/hello', (req, res) => { // tạo ra 1 api endpoint, dạng http GE
 
 // CRUD: Create, Read, Update, Delete
 
-// Lấy danh sách sản phẩm trong categoryId
-app.get('/api/categories/:id', async (req, res) => {
-    try {
-        const categoryId = req.params.id
-
-        // const sql = `SELECT ProductID, ProductName FROM Products WHERE CategoryID = ${categoryId}` // nối chuỗi => SQL Injection
-
-        // Parameterized query
-        const sql = 'SELECT ProductID, ProductName FROM Products WHERE CategoryID = ?'
-
-        const [rows] = await db.execute(sql, [categoryId])
-
-        return res.status(200).json(rows)
-
-    } catch (error) {
-        return res.status(500).json(error)
-    }
-})
-
 // Lấy danh sách sản phẩm có giá nhỏ hơn 2000
-app.get('/api/products', async (req, res) => {
-    try {
-        const sql = 'SELECT ProductName, Price FROM Products WHEREa Price < 2000'
+app.get('/api/products', (req, res) => {
+    const sql = 'SELECT ProductName, Price FROM Products WHERE Price < 2000'
+    db.query(sql, (err, result) => {
+        if (err) {
+            return res.status(500).json({
+                message: 'Internal Server Error'
+            })
+        }
 
-        const [rows] = await db.query(sql)
-
-        return res.status(200).json(rows)
-    } catch (error) {
-        return res.status(500).json(error)
-    }
+        return res.status(200).json(result)
+    })
 })
 
 app.get('/api/users', (req, res) => {
@@ -71,21 +58,28 @@ app.get('/api/users', (req, res) => {
 
 // Thêm 1 sản phẩm mới
 
-app.post('/api/products', async (req, res) => {
-    try {
-        const { ProductID, CategoryID, ShopID, ProductName, Price, Stock } = req.body
-        if (!ProductID || !CategoryID || !ShopID || !ProductName || !Price || !Stock) {
-            throw new Error("ProductID, CategoryID, ShopID, ProductName, Price, Stock are required")
+app.post('/api/products', (req, res) => {
+    const { ProductID, CategoryID, ShopID, ProductName, Price, Stock } = req.body
+    if (!ProductID || !CategoryID || !ShopID || !ProductName || !Price || !Stock) {
+        return res.status(400).json({
+            message: "ProductID, CategoryID, ShopID, ProductName, Price, Stock are required"
+        })
+    }
+
+    const sql = `INSERT INTO Products (ProductID, CategoryID, ShopID, ProductName, Price, Stock) VALUES (${ProductID}, ${CategoryID}, ${ShopID}, '${ProductName}', ${Price}, ${Stock})`
+
+    db.query(sql, (err, result) => {
+        if (err) {
+            return res.status(500).json({
+                message: 'Internal Server Error',
+                err: err
+            })
         }
 
-        const sql = `INSERT INTO Products (ProductID, CategoryID, ShopID, ProductName, Price, Stock) VALUES (${ProductID}, ${CategoryID}, ${ShopID}, '${ProductName}', ${Price}, ${Stock})`
-
-        const [rows] = await db.query(sql)
-
-        return res.status(200).json(rows)
-    } catch (error) {
-        return res.status(500).json(error)
-    }
+        return res.status(200).json({
+            message: 'Add product success'
+        })
+    })
 })
 
 // Cập nhật 1 sản phẩm
