@@ -26,6 +26,82 @@ app.get('/api/hello', (req, res) => { // tạo ra 1 api endpoint, dạng http GE
     return res.send('Hello From ExpressJs') // trả về response dạng text
 })
 
+// RESTful API
+app.get("/api/v1/products", async (req, res) => {
+    const sql = 'SELECT ProductName, Price FROM Products'
+    const [products] = await db.query(sql)
+
+    let filteredProducts = [...products] // Spread Operator
+
+    // Lọc theo category
+    if (req.query.category_id) { // hash table - O(1) - khoá chính, khoá ngoại, đánh index
+        filteredProducts = filteredProducts.filter((product) => {
+            return product.CategoryID === req.query.category_id
+        })
+    }
+
+    // Lọc theo shop
+    if (req.query.shop_id) {
+        filteredProducts = filteredProducts.filter((product) => {
+            return product.ShopID === req.query.shop_id
+        })
+    }
+
+    // Sắp xếp: ?sort=product_id
+    const sortedProducts = [...filteredProducts]
+    if (req.query.sort) {
+        const sortField = req.query.sort // "product_id"
+        const isDesc = req.query.order === 'desc'
+
+        // a = {
+        //     "product_id": "1",
+        //     "product_name": "abc",
+        // }
+
+        // 2 Cách truy cập 1 thuộc tính của 1 object: ., []
+
+        sortedProducts.sort((a, b) => { // a["product_id"]
+            if (a[sortField] < b[sortField]) return isDesc ? 1 : -1
+            if (a[sortField] > b[sortField]) return isDesc ? -1 : 1
+            return 0
+        })
+    }
+
+    // Phân trang: /products?page=1&limit=10
+    let page = parseInt(req.query.page) || 1
+    let limit = parseInt(req.query.limit) || 10
+
+    // 0-9
+    // 10-19
+    let startIndex = (page - 1) * limit
+    let endIndex = page * limit
+
+    const totalProducts = sortedProducts.length
+    const totalPages = Math.ceil(totalProducts / limit)
+
+    // 111/10 = 12 trang
+
+    const hasNext = page < totalPages
+    const hasPrev = page > 0
+
+    const paginatedProducts = sortedProducts.slice(startIndex, endIndex)
+
+    return res.status(200).json({
+        status: "success",
+        message: "Get products success",
+        data: paginatedProducts,
+        pagination: {
+            page: page,
+            limit: limit,
+            totalItems: totalProducts,
+            totalPages: totalPages,
+            hasNext: hasNext,
+            hasPrev: hasPrev
+        }
+    })
+
+})
+
 
 // CRUD: Create, Read, Update, Delete
 
