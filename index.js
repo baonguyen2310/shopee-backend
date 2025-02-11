@@ -5,7 +5,7 @@ const app = express()
 
 app.use(express.json())
 
-app.use('/api/products', productRoutes)
+app.use('/api/v1/products', productRoutes)
 
 app.listen(5001, () => {
     console.log('Server listening at 5001')
