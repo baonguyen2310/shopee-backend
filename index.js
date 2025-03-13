@@ -1,12 +1,22 @@
 const express = require('express')
+const cors = require('cors')
 const productRoutes = require('./routes/productRoutes')
 const userRoutes = require('./routes/userRoutes')
 
 const app = express()
 
-app.use(express.json())
+app.use(cors()) // cho phép truy cập khác nguồn gốc
+app.use(express.json()) // xử lý req.body dạng json
 
 app.use('/api/v1/products', productRoutes)
+
+app.use((req, res, next) => {
+    console.log(`Middleware 1`)
+    // req.body.UserID = '123'
+    // console.log(`Middleware 1: ${req.body.UserID}`)
+    next()
+})
+
 app.use('/api/v1/users', userRoutes)
 
 app.listen(5001, () => {

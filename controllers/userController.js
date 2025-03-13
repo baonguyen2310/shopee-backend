@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 const UserModel = require('../models/userModel')
 
 exports.register = async (req, res) => {
@@ -55,7 +56,7 @@ exports.login = async (req, res) => {
         }
 
         // đăng nhập thành công, tạo jwt v1: mã hoá đối xứng
-        const secretKey = '123456789'
+        const secretKey = process.env.SECRET_KEY
         const token = jwt.sign(data, secretKey, { expiresIn: '1h' })
 
         // access token (expire ngắn), refresh token (expire dài)
@@ -72,7 +73,9 @@ exports.login = async (req, res) => {
         return res.status(200).json({
             status: 'success',
             message: 'Login successfully',
-            data: token
+            data: {
+                token: token
+            }
         })
 
 
@@ -83,4 +86,11 @@ exports.login = async (req, res) => {
             data: error
         })
     }
+}
+
+
+exports.login_v2 = async (req, res) => {
+    
+
+
 }

@@ -12,7 +12,7 @@ exports.getAllProducts = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     try {
         return res.status(200).json({
-            message: "Deleted product"
+            message: `${req.user.userName} deleted product ${req.params.id}`
         })
     } catch (error) {
         
