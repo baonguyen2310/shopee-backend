@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const fs = require('fs')
 
 const verifyToken = (req, res, next) => {
     // gửi jwtToken bằng http header Authorization
@@ -14,9 +15,12 @@ const verifyToken = (req, res, next) => {
 
     const token = authHeader.split(" ")[1]
 
-    const secretKey = process.env.SECRET_KEY
+    // const secretKey = process.env.SECRET_KEY
+    const publicKey = fs.readFileSync("./publicKey.pem", {
+        encoding: 'utf8'
+    })
 
-    jwt.verify(token, secretKey, (err, decoded) => {
+    jwt.verify(token, publicKey, (err, decoded) => {
         if (err) {
             return res.status(403).json({
                 status: 'error',

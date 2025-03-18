@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
+const fs = require('fs')
 const UserModel = require('../models/userModel')
 
 exports.register = async (req, res) => {
@@ -55,9 +56,15 @@ exports.login = async (req, res) => {
             userName: foundUser.UserName
         }
 
-        // đăng nhập thành công, tạo jwt v1: mã hoá đối xứng
-        const secretKey = process.env.SECRET_KEY
-        const token = jwt.sign(data, secretKey, { expiresIn: '1h' })
+        // đăng nhập thành công, tạo jwt v2: mã hoá bất đối xứng
+        const privateKey = fs.readFileSync("./privateKey.pem", {
+            encoding: 'utf8'
+        })
+        // const secretKey = process.env.SECRET_KEY
+        const token = jwt.sign(data, privateKey, {
+            algorithm: 'RS256',
+            expiresIn: '1h'
+        })
 
         // access token (expire ngắn), refresh token (expire dài)
         // AT hết hạn => RT xin server cấp AT mới => không đăng nhập lại dù AT có thời gian sống ngắn
@@ -86,11 +93,4 @@ exports.login = async (req, res) => {
             data: error
         })
     }
-}
-
-
-exports.login_v2 = async (req, res) => {
-    
-
-
 }
