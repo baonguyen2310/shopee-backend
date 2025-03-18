@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const fs = require('fs')
 const UserModel = require('../models/userModel')
+const KeyTokenModel = require('../models/keyTokenModel')
+const { createKeyPairs } = require('../utils/createKeyPairs')
 
 exports.register = async (req, res) => {
     try {
@@ -51,16 +53,18 @@ exports.login = async (req, res) => {
             })
         }
 
+        const userId = foundUser.UserID
+
         const data = {
             userId: foundUser.UserID,
             userName: foundUser.UserName
         }
 
         // đăng nhập thành công, tạo jwt v2: mã hoá bất đối xứng
-        const privateKey = fs.readFileSync("./privateKey.pem", {
-            encoding: 'utf8'
-        })
-        // const secretKey = process.env.SECRET_KEY
+        const { privateKey, publicKey } = createKeyPairs()
+
+        await KeyTokenModel.createKeyToken(userId, publicKey)
+
         const token = jwt.sign(data, privateKey, {
             algorithm: 'RS256',
             expiresIn: '1h'
