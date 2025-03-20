@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
-const KeyTokenModel = require('../models/keyTokenModel')
+const RefreshKeyModel = require('../models/refreshKeyModel')
 
-const verifyToken = async (req, res, next) => {
+const verifyRefreshToken = async (req, res, next) => {
     try {
         // gửi jwtToken bằng http header Authorization
         const authHeader = req.headers.authorization
@@ -26,9 +26,9 @@ const verifyToken = async (req, res, next) => {
             })
         }
 
-        const foundKeyToken = await KeyTokenModel.findKeyTokenByUserId(userId)
+        const foundRefreshKey = await RefreshKeyModel.findRefreshKeyByUserId(userId)
 
-        if (!foundKeyToken) {
+        if (!foundRefreshKey) {
             return res.status(401).json({
                 status: 'error',
                 message: 'Unauthorized',
@@ -36,7 +36,7 @@ const verifyToken = async (req, res, next) => {
             })
         }
 
-        const publicKey = foundKeyToken.PublicKey
+        const publicKey = foundRefreshKey.RefreshPublicKey
 
         jwt.verify(token, publicKey, (err, decoded) => {
             if (err) {
@@ -59,4 +59,4 @@ const verifyToken = async (req, res, next) => {
     }
 }
 
-module.exports = verifyToken
+module.exports = verifyRefreshToken
