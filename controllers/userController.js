@@ -71,7 +71,7 @@ exports.login = async (req, res) => {
 
         const accessToken = jwt.sign(data, accessPrivateKey, {
             algorithm: 'RS256',
-            expiresIn: '1m'
+            expiresIn: '30m'
         })
 
         const refreshToken = jwt.sign(data, refreshPrivateKey, {
