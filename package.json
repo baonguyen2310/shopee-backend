@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "NODE_ENV=production nodemon index.js",
+    "dev": "NODE_ENV=development nodemon index.js",
+    "pm2:start": "pm2 start index.js --name shopee_backend --env production",
+    "pm2:dev": "pm2 start index.js --name shopee_backend --env development"
   },
   "author": "",
   "license": "ISC",
@@ -19,5 +22,8 @@
     "mysql2": "^3.11.5",
     "nodemon": "^3.1.7",
     "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

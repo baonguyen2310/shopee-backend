@@ -4,8 +4,20 @@ const productRoutes = require('./routes/productRoutes')
 const userRoutes = require('./routes/userRoutes')
 const connectMongoDB = require('./config/mongodb')
 const commentRoutes = require('./routes/commentRoutes')
+const pool = require('./config/db')
+
+pool.getConnection()
+    .then((connection) => {
+        console.log('Connected to MySQL database')
+        connection.release()
+    })
+    .catch((error) => {
+        console.error('Error connecting to MySQL database:', error)
+    })
+    
 
 connectMongoDB()
+
 
 const app = express()
 
